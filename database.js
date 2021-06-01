@@ -5,7 +5,7 @@ const firebase = require("firebase/app");
 require("firebase/firestore");
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
+const Task = require("./Task");
 
 
 
@@ -22,9 +22,8 @@ module.exports={
   },
   addTask : async function (task) {
     try {
-      task.getMonth = getMonth;
       const obj = {[task.ofUser]: {subject: task.subject, ofUser: task.ofUser} };
-      const doc = await db.collection(task.getMonth()).doc(task.getDay()).set(obj, {merge: true});
+      const doc = await db.collection(Task.getMonth(task)).doc(Task.getDay(task)).set(obj, {merge: true});
       return true;
     } 
     catch (ex) {

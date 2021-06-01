@@ -1,3 +1,4 @@
+const delim = '-';
 module.exports = class Task{
   subject; 
   day; 
@@ -7,10 +8,10 @@ module.exports = class Task{
     this.day = day;
     this.ofUser = ofUser;
   };
-  getMonth() {
-    return this.day.split(delim)[1] || "*";
+  static getMonth(obj) {
+    return obj.day.split(delim)[1] || "*";
   };
-  getDay() {
-    return this.day.split(delim)[0];
+  static getDay(obj) {
+    return obj.day.split(delim)[0];
   };
 }
