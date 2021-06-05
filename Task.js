@@ -8,8 +8,11 @@ module.exports = class Task{
     this.day = day;
     this.ofUser = ofUser;
   };
+  static getYear(obj) {
+    return obj.day.split(delim)[2];
+  };
   static getMonth(obj) {
-    return obj.day.split(delim)[1] || "*";
+    return obj.day.split(delim)[1];
   };
   static getDay(obj) {
     return obj.day.split(delim)[0];

@@ -10,7 +10,7 @@ const bot = new TeleBot({
 const db = require("./database");
 const Task = require("./Task");
 const delim = "-";
-
+const syntaxMessage = `Enter your task in the format: \nTask Name\nDD${delim}MM${delim}YYYY\n\nskip ${delim}YYYY if its a yearly recurring, or ${delim}MM${delim}YYYY if its a mothly recurring tasks`;
 
 bot.on(['/start', '/begin'], async msg => {
   const user = { ...msg.from }
@@ -20,20 +20,67 @@ bot.on(['/start', '/begin'], async msg => {
 });
 
 
-bot.on(["/add", "/remind"], msg => {
-  return bot.sendMessage(msg.from.id, `Enter your task in the format: \nTask Name\nDD${delim}MM${delim}YYYY\n\skip ${delim}YYYY if its a yearly recurring, or ${delim}MM${delim}YYYY if its a mothly recurring tasks`, { ask: "task" });
+bot.on(["/add", "/remind"], async msg => {
+  const { id } = msg.from;
+  const userExist = await db.isUser(id);
+  if(!userExist) return bot.sendMessage(id, "please /start the bot");
+
+
+  return bot.sendMessage(id, syntaxMessage, { ask: "task_add" });
 });
 
+bot.on("ask.task_add", async msg => {
+  const { id } = msg.from;
 
-bot.on("ask.task", msg => {
-  const [subject, day, ] = msg.text.split('\n');
+  let [subject, day ] = msg.text.split('\n');
   if (validateSubject(subject) && validateDay(day))
-    return bot.sendMessage(msg.from.id, `Wrong format`, { ask: "task" });
+    return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
+  day = convertDay(day);  
 
-  const task = new Task(subject, day, msg.from.id);
+  const task = new Task(subject, day, id);
 
-  db.addTask(task);
+  let result;
+
+  try {
+    result = await db.addTask(task)?"done":"unable to add task";
+  } catch (ex) {
+    console.log(ex);
+  }
+
+  return bot.sendMessage(id, "add: "+result);
 });
+
+
+bot.on(["/delete", "/remove"], async msg => {
+  const { id } = msg.from;
+  const userExist = await db.isUser(id);
+  if(!userExist) return bot.sendMessage(id, "please /start the bot");
+
+
+  return bot.sendMessage(id, syntaxMessage, { ask: "task_delete" });
+});
+
+bot.on("ask.task_delete", async msg => {
+  const { id } = msg.from;
+
+  let [subject, day ] = msg.text.split('\n');
+  if (validateSubject(subject) && validateDay(day))
+    return bot.sendMessage(id, `Wrong format`, { ask: "task_delete" });
+  day = convertDay(day);  
+
+  const task = new Task(subject, day, id);
+  
+  let result;
+
+  try {
+    result = await db.deleteTask(task)?"done":"task not found";
+  } catch (ex) {
+    console.log(ex);
+  }
+
+  return bot.sendMessage(id, "delete: "+result);
+});
+
 
 
 bot.start();
@@ -55,5 +102,23 @@ function validateSubject(subject) {
 }
 
 function validateDay(day) {
-  return day.split(delim).some(unit => isNaN(parseInt(unit)));
+  let splitDay = day.split(delim);
+  if(splitDay.length <= 3)
+    return splitDay.some(unit => isNaN(parseInt(unit)));
+  return false;
+}
+
+function convertDay(day) {
+  let splitDay = day.split(delim);
+
+  switch (splitDay.length) {
+    case 2:
+      splitDay.push("*");
+      break;
+    case 1:
+      splitDay.push("*");
+      splitDay.push("*");
+  }
+
+  return splitDay.join(delim);
 }
