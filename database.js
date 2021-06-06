@@ -32,9 +32,11 @@ module.exports = {
       return false;
     }
   },
-  addTask: async function (task) {
+  addTask: async function (task, userId) {
     try {
-      const obj = { [task.ofUser]: { subject: task.subject, ofUser: task.ofUser } };
+      const obj = { [userId]: {...task} };
+      delete obj[userId].day;
+
       await db.collection(Task.getMonth(task)).doc(Task.getDay(task)).set(obj, { merge: true });
       return true;
     }
@@ -43,15 +45,15 @@ module.exports = {
       return false;
     }
   },
-  deleteTask: async function (task) {
+  deleteTask: async function (task, userId) {
     try {
       const res = await this.getTask(task);
-      const doc = res[String(task.ofUser)];
-      if (!doc || doc["subject"] !== task["subject"])
+      const doc = res[String(userId)];
+      if (!doc || !Task.match(doc, task))
         return false;
 
       await db.collection(Task.getMonth(task)).doc(Task.getDay(task)).update({
-        [task.ofUser]: firebase.firestore.FieldValue.delete()
+        [userId]: firebase.firestore.FieldValue.delete()
       });
       return true;
     }

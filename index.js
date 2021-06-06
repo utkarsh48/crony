@@ -32,17 +32,15 @@ bot.on(["/add", "/remind"], async msg => {
 bot.on("ask.task_add", async msg => {
   const { id } = msg.from;
 
-  let [subject, day ] = msg.text.split('\n');
-  if (validateSubject(subject) && validateDay(day))
-    return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
-  day = convertDay(day);  
+  const task = extractTask(msg.text);
 
-  const task = new Task(subject, day, id);
+  if (validateSubject(task.subject) && validateDay(task.day))
+    return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
 
   let result;
 
   try {
-    result = await db.addTask(task)?"done":"unable to add task";
+    result = await db.addTask(task, id)?"done":"unable to add task";
   } catch (ex) {
     console.log(ex);
   }
@@ -63,17 +61,15 @@ bot.on(["/delete", "/remove"], async msg => {
 bot.on("ask.task_delete", async msg => {
   const { id } = msg.from;
 
-  let [subject, day ] = msg.text.split('\n');
-  if (validateSubject(subject) && validateDay(day))
-    return bot.sendMessage(id, `Wrong format`, { ask: "task_delete" });
-  day = convertDay(day);  
+  const task = extractTask(msg.text);
 
-  const task = new Task(subject, day, id);
+  if (validateSubject(task.subject) && validateDay(task.day))
+    return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
   
   let result;
 
   try {
-    result = await db.deleteTask(task)?"done":"task not found";
+    result = await db.deleteTask(task, id)?"done":"task not found";
   } catch (ex) {
     console.log(ex);
   }
@@ -84,41 +80,57 @@ bot.on("ask.task_delete", async msg => {
 
 
 bot.start();
-
-
-
-
 app.listen(process.env.PORT || 3000, () => console.log("listening..."));
 
-
-
-
-function dash() {
-  console.log("\n----------------------\n");
-}
 
 function validateSubject(subject) {
   return subject.length > 0
 }
 
 function validateDay(day) {
-  let splitDay = day.split(delim);
-  if(splitDay.length <= 3)
-    return splitDay.some(unit => isNaN(parseInt(unit)));
+  if( day.length <= 3 && 
+  !day.some(unit => isNaN(parseInt(unit))) )
+
+    if( ([0,1,3,5,7,8,10,12].indexOf(day[1]) !== -1) && 
+    day[0] > 0 && 
+    day[0] <= 31 )
+      return true;
+    else if( [4,6,9,11].indexOf(day[1]) !==- 1 && 
+    day[0] > 0 && 
+    day[0] <= 30 )
+      return true;
+    else if(day[1]===2 && 
+    day[0] > 0 && 
+    day[0] <=29 )
+      return true;
+  
   return false;
 }
 
 function convertDay(day) {
   let splitDay = day.split(delim);
 
+  splitDay = splitDay.map(unit=>unit.trim());
+
   switch (splitDay.length) {
     case 2:
-      splitDay.push("*");
+      splitDay.push("0");
       break;
     case 1:
-      splitDay.push("*");
-      splitDay.push("*");
+      splitDay.push("0");
+      splitDay.push("0");
+      break;
   }
 
-  return splitDay.join(delim);
+  return splitDay;
+}
+
+function extractTask(str){
+  let [subject, day, ...descriptionParts] = str.split('\n');
+  
+  let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
+  day = convertDay(day);
+  
+  [subject, description] = [subject, description].map(text=>text.trim());
+  return new Task(subject, day, description);
 }
