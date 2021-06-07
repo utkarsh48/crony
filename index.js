@@ -10,7 +10,7 @@ const bot = new TeleBot({
 const db = require("./database");
 const Task = require("./Task");
 const delim = "-";
-const syntaxMessage = `Enter your task in the format: \nTask Name\nDD${delim}MM${delim}YYYY\n\nskip ${delim}YYYY if its a yearly recurring, or ${delim}MM${delim}YYYY if its a mothly recurring tasks`;
+const syntaxMessage = `Enter your task in the format: \nMM${delim}DD${delim}YYYY\nReminder Name\nDescription\n\nskip ${delim}YYYY if its a yearly recurring`;
 
 bot.on(['/start', '/begin'], async msg => {
   const user = { ...msg.from }
@@ -34,7 +34,7 @@ bot.on("ask.task_add", async msg => {
 
   const task = extractTask(msg.text);
 
-  if (validateSubject(task.subject) && validateDay(task.day))
+  if (validateSubject(task.subject) && validateDay(task.date))
     return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
 
   let result;
@@ -63,8 +63,8 @@ bot.on("ask.task_delete", async msg => {
 
   const task = extractTask(msg.text);
 
-  if (validateSubject(task.subject) && validateDay(task.day))
-    return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
+  if (validateSubject(task.subject) && validateDay(task.date))
+    return bot.sendMessage(id, `Wrong format`, { ask: "task_delete" });
   
   let result;
 
@@ -78,6 +78,19 @@ bot.on("ask.task_delete", async msg => {
 });
 
 
+bot.on(["/list", "/get"], async msg => {
+  const { id } = msg.from;
+  const userExist = await db.isUser(id);
+  if(!userExist) return bot.sendMessage(id, "please /start the bot");
+  let message = "";
+  try {
+    let res = await db.getTasks(id);
+    message = populateTaskMessage(res);
+  } catch (ex) {
+    console.log(ex);
+  }
+  return bot.sendMessage(id, message, { parseMode: 'Markdown' });
+});
 
 bot.start();
 app.listen(process.env.PORT || 3000, () => console.log("listening..."));
@@ -107,30 +120,49 @@ function validateDay(day) {
   return false;
 }
 
-function convertDay(day) {
-  let splitDay = day.split(delim);
-
-  splitDay = splitDay.map(unit=>unit.trim());
-
-  switch (splitDay.length) {
-    case 2:
-      splitDay.push("0");
-      break;
-    case 1:
-      splitDay.push("0");
-      splitDay.push("0");
-      break;
-  }
-
-  return splitDay;
-}
 
 function extractTask(str){
-  let [subject, day, ...descriptionParts] = str.split('\n');
+  let [date, subject, ...descriptionParts] = str.split('\n');
   
   let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
-  day = convertDay(day);
+  let day = new Date(date);
   
   [subject, description] = [subject, description].map(text=>text.trim());
   return new Task(subject, day, description);
+}
+
+function populateTaskMessage(arr){
+  let message = "Your reminders are as follows\n";
+  if(arr.length<1) return "You have no reminders"
+  
+  //add other paths logic
+  for(const doc of arr)
+    for(const [monthNo, monthObj] of Object.entries(doc)){
+      message += `\n${getMonthName(monthNo)}\n----------\n`;
+      for(const [date, dateObj] of Object.entries(monthObj)){
+        for(const [taskNo, task] of Object.entries(dateObj)) {
+          let taskObject = Task.fromFirebase(task);
+          message += `Reminder ${parseInt(taskNo)+1} of\n${simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description}\n-----\n\n`;
+        }      
+      }
+    }
+  return message;
+}
+
+function getMonthName(num){
+  return ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][num-1];
+}
+
+function simplifyDate(date) {
+  let str = `${padZero(date.getMonth()+1)}-${padZero(date.getDate())}`;
+  let whatYear = date.getYear() % 100;
+  return whatYear ? `${str}-${padZero(whatYear)}` : str;
+}
+
+function padZero(num){
+  if(typeof num === "string" && num.length<2)
+    return "0"+num;
+  else if(typeof num === "number" && num%10===num)
+    return "0"+num;
+  return num;
 }

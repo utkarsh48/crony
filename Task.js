@@ -1,34 +1,42 @@
-const delim = '-';
 module.exports = class Task{
   subject; 
-  day;
-  year;
+  date;
   description;
   constructor(subject, day, description){
     this.subject = subject;
-    this.day = day;
+    this.date = day;
     this.description = description;
-    this.year = Task.getYear(this);
   };
-  static getYear(obj) {
-    return obj.day[2];
-  };
-  static getMonth(obj) {
-    return obj.day[1];
-  };
-  static getDay(obj) {
-    return obj.day[0];
-  };
-  static match(obj1, obj2){
-    let flag = false;
-    for(let prop in obj1){
-      if( prop === "day" )
-        continue;
-      else if(obj1[prop] === obj2[prop])
-        flag = true;
-      else
-        flag = false;
+
+  static fromFirebase(obj){
+    let {subject, day, description} = obj;
+    day = Task.duringOutputDay(day);
+    return new Task(subject, day, description);
+  }
+
+  getDate(){
+    return this.date.getDate();
+  }
+
+  getMonth(){
+    return this.date.getMonth()+1;
+  }
+
+  static duringInputDay(day) {
+    let splitDay = day.split(delim);
+    splitDay = splitDay.map(unit=>unit.trim());
+  
+    switch (splitDay.length) {
+      case 2:
+        splitDay.push("0");
+        break;
+      default:
+        throw new Error("invalid date");
     }
-    return flag;
+  
+    return splitDay.join("-");
+  }
+  static duringOutputDay(day){
+    return day.toDate();
   }
 }
