@@ -38,8 +38,7 @@ module.exports = {
         .collection("tasks").get();
 
       if (snapshot.empty) {
-        console.log("empty");
-        return false;
+        return null;
       }
 
       let tasks = new Array();
@@ -62,20 +61,18 @@ module.exports = {
       const oldTasksOfThisMonthExist = oldTasks.findIndex(oldTask => String(task.getMonth()) in oldTask) !== -1;
 
       const taskDay = task.getDate();
-      const obj = oldTasksOfThisMonthExist ?
-        { [taskDay]: firebase.firestore.FieldValue.arrayUnion({ ...task }) } :
-        { [taskDay]: [{ ...task }] };
+      
+      const taskObject = {...task};
+      taskObject.date = String(task.date);
+      let obj = oldTasksOfThisMonthExist ?
+        { [taskDay]: firebase.firestore.FieldValue.arrayUnion(taskObject) } :
+        { [taskDay]: [taskObject] };
 
-      // keeping date in firebase as timestamp
-      // obj[taskDay].day = firebase.firestore.Timestamp.fromDate(task.date);
-      obj[taskDay].day = String(task.date);
 
       if (oldTasksOfThisMonthExist)
         await db.collection("users").doc(String(userId)).collection("tasks").doc(String(task.getMonth())).update(obj);
-      // await db.doc(`/users/${userId}/tasks/${task.getMonth()}`).update(obj);
       else
         await db.collection("users").doc(String(userId)).collection("tasks").doc(String(task.getMonth())).set(obj, { merge: true });
-      // await db.doc(`/users/${userId}/tasks/${task.getMonth()}`).set(obj, {merge: true});
 
       return true;
     }

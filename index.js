@@ -21,6 +21,7 @@ bot.on(['/start', '/begin'], async msg => {
 });
 
 
+
 bot.on(["/add", "/remind"], async msg => {
   const { id } = msg.from;
   const userExist = await db.isUser(id);
@@ -38,7 +39,7 @@ bot.on("ask.task_add", async msg => {
   if (validate.subject(task.subject) && validate.day(task.date))
     return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
 
-  let result;
+  let result = new String();
 
   try {
     result = await db.addTask(id, task) ? "done" : "unable to add task";
@@ -48,6 +49,7 @@ bot.on("ask.task_add", async msg => {
 
   return bot.sendMessage(id, "add: " + result);
 });
+
 
 
 bot.on(["/delete", "/remove"], async msg => {
@@ -79,10 +81,41 @@ bot.on("ask.task_delete", async msg => {
 });
 
 
+
 bot.on(["/list", "/get"], async msg => {
-  
   getList(msg, "Your reminders are as follows");
 });
+
+
+
+bot.on(["/listOf", "/getOf"], async msg => {
+  const { id } = msg.from;
+  const userExist = await db.isUser(id);
+  if (!userExist) return bot.sendMessage(id, "please /start the bot");
+
+  bot.sendMessage(id, "Send a date in the format\nDD-MM-YYYY", {ask: "task_get_of"});
+});
+
+bot.on("ask.task_get_of", async msg => {
+  const { id } = msg.from;
+  const date = new Date(msg.text);
+  if(!date) return bot.sendMessage(id, "Wrong format");
+  let result = new String();
+  try {
+    const tasks = await db.getTasksOfDate(id, date);
+    
+    
+    for(const [taskNo, task] of Object.entries(tasks))
+      result += util.populateTaskMessage(taskNo, task);
+    
+  } catch (error) {
+    result = "No reminder found";
+  }
+  return bot.sendMessage(id, result, { parseMode: 'Markdown'});
+
+})
+
+
 
 bot.start();
 app.listen(process.env.PORT || 3000, () => console.log("listening..."));
@@ -91,11 +124,13 @@ app.listen(process.env.PORT || 3000, () => console.log("listening..."));
 getList = async (msg, firstLine, options) => {
   const { id } = msg.from;
   const userExist = await db.isUser(id);
+
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
   let message = "";
+
   try {
     let res = await db.getTasks(id);
-    message = util.populateTaskMessage(res, firstLine);
+    message = util.populateListMessage(res, firstLine);
   } catch (ex) {
     console.log(ex);
   }

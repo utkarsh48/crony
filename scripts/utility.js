@@ -16,7 +16,7 @@ module.exports ={
     return str.split(":");
   },
 
-  populateTaskMessage: function (arr, firstLine = "Your reminders are as follows") {
+  populateListMessage: function (arr, firstLine = "Your reminders are as follows") {
     let message = firstLine + "\n";
     if (arr.length < 1) return "You have no reminders"
 
@@ -26,12 +26,17 @@ module.exports ={
         message += `\n${this.getMonthName(monthNo)}\n----------\n`;
         for (const [date, dateObj] of Object.entries(monthObj)) {
           for (const [taskNo, task] of Object.entries(dateObj)) {
-            let taskObject = Task.fromFirebase(task);
-            message += `Reminder ${parseInt(taskNo) + 1} of\n${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description}\n-----\n\n`;
+            message += this.populateTaskMessage(taskNo, task);
           }
         }
       }
     return message;
+  },
+
+  populateTaskMessage: function (taskNo, task) {
+    let taskObject = Task.fromFirebase(task);
+
+    return `Reminder ${parseInt(taskNo) + 1} of\n${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description}\n-----\n\n`;
   },
 
   getMonthName: function (num) {
