@@ -9,9 +9,9 @@ module.exports = class Task{
   };
 
   static fromFirebase(obj){
-    let {subject, day, description} = obj;
-    day = Task.duringOutputDay(day);
-    return new Task(subject, day, description);
+    let {subject, date, description} = obj;
+    date = new Date(date);
+    return new Task(subject, date, description);
   }
 
   getDate(){
@@ -35,8 +35,5 @@ module.exports = class Task{
     }
   
     return splitDay.join("-");
-  }
-  static duringOutputDay(day){
-    return day.toDate();
   }
 }
