@@ -12,7 +12,7 @@ module.exports ={
    return new Task(subject, day, description);
   },
 
-  extractDeleteString: function (str) {
+  extractModificationString: function (str) {
     return str.split(":");
   },
 

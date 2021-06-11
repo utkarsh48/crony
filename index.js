@@ -63,7 +63,7 @@ bot.on(["/delete", "/remove"], async msg => {
 bot.on("ask.task_delete", async msg => {
   const { id } = msg.from;
 
-  const [day, taskNo] = util.extractDeleteString(msg.text);
+  const [day, taskNo] = util.extractModificationString(msg.text);
   const date = new Date(util.swapMonthDate(day));
 
   if(!(day && date && taskNo))
@@ -114,6 +114,37 @@ bot.on("ask.task_get_of", async msg => {
   return bot.sendMessage(id, result, { parseMode: 'Markdown'});
 
 })
+
+
+
+bot.on(["/update"], async msg => {
+  const { id } = msg.from;
+
+  return bot.sendMessage(id, "To update a reminder send\nDD-MM-YYYY:ReminderNumber\nDD-MM-YYYY\nSubject\nDescription", { ask: "task_update" });
+});
+
+bot.on("ask.task_update", async msg => {
+  const { id } = msg.from;
+
+  const [modificationPart, ...taskPart] = msg.text.split("\n");
+  const [day, taskNo] = util.extractModificationString(modificationPart);
+  const changedTask = util.extractTask(taskPart.join("\n"));
+  const date = new Date(util.swapMonthDate(day));
+
+  if(!(day && date && taskNo && changedTask))
+    return bot.sendMessage(id, "Wrong format");
+
+  let result;
+
+  try {
+    result = await db.updateTask(id, changedTask, taskNo - 1, date) ? "done" : "task not found";
+  } catch (ex) {
+    console.log(ex);
+  }
+
+  return bot.sendMessage(id, "update: " + result);
+});
+
 
 
 

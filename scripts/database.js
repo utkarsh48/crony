@@ -99,6 +99,23 @@ module.exports = {
       return false;
     }
   },
+  updateTask: async function (userId, changedTask, taskNo, date) {
+    try {
+      return db.runTransaction(async ()=>{
+        // console.log("transaction", userId, changedTask, taskNo, date);
+        const res1 = await this.deleteTask(userId, taskNo, date);
+        // console.log(res1);
+        if(!res1) return false;
+        const res2 = await this.addTask(userId, changedTask);
+        // console.log(res2 && res2);
+        return res1 && res2;
+      });      
+    }
+    catch (ex) {
+      console.error(ex);
+      return false;
+    }
+  },
   getTasksOfDate: async (userId, date) => {
     let snapshot = await db.collection("users")
       .doc(String(userId))
