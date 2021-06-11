@@ -58,12 +58,13 @@ module.exports = {
   addTask: async function (userId, task) {
     try {
       const oldTasks = await this.getTasks(userId);
-      const oldTasksOfThisMonthExist = oldTasks.findIndex(oldTask => String(task.getMonth()) in oldTask) !== -1;
-
       const taskDay = task.getDate();
       
       const taskObject = {...task};
       taskObject.date = String(task.date);
+
+      const oldTasksOfThisMonthExist = oldTasks? oldTasks.findIndex(oldTask => String(task.getMonth()) in oldTask) !== -1 : null;
+
       let obj = oldTasksOfThisMonthExist ?
         { [taskDay]: firebase.firestore.FieldValue.arrayUnion(taskObject) } :
         { [taskDay]: [taskObject] };
@@ -92,22 +93,21 @@ module.exports = {
       const taskDay = date.getDate();
       let obj = { [taskDay]: firebase.firestore.FieldValue.arrayRemove(tasksOfDay[taskNo]) };
       await db.collection("users").doc(String(userId)).collection("tasks").doc(String(taskToDelete.getMonth())).update(obj);
-      return true;
+      return taskToDelete;
     }
     catch (ex) {
       console.error(ex);
       return false;
     }
   },
-  updateTask: async function (userId, changedTask, taskNo, date) {
+  updateTask: async function (userId, rawChangedTask, taskNo, date) {
     try {
       return db.runTransaction(async ()=>{
-        // console.log("transaction", userId, changedTask, taskNo, date);
         const res1 = await this.deleteTask(userId, taskNo, date);
-        // console.log(res1);
         if(!res1) return false;
+        
+        let changedTask = Task.fromFirebase({...res1, ...rawChangedTask});
         const res2 = await this.addTask(userId, changedTask);
-        // console.log(res2 && res2);
         return res1 && res2;
       });      
     }

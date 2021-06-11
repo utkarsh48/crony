@@ -10,7 +10,8 @@ module.exports = class Task{
 
   static fromFirebase(obj){
     let {subject, date, description} = obj;
-    date = new Date(date);
+    console.log("d>", date);
+    date = new Date(String(date));
     return new Task(subject, date, description);
   }
 

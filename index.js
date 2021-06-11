@@ -125,18 +125,26 @@ bot.on(["/update"], async msg => {
 
 bot.on("ask.task_update", async msg => {
   const { id } = msg.from;
-
-  const [modificationPart, ...taskPart] = msg.text.split("\n");
-  const [day, taskNo] = util.extractModificationString(modificationPart);
-  const changedTask = util.extractTask(taskPart.join("\n"));
-  const date = new Date(util.swapMonthDate(day));
-
-  if(!(day && date && taskNo && changedTask))
-    return bot.sendMessage(id, "Wrong format");
-
   let result;
-
   try {
+  
+    const [modificationPart, ...taskPart] = msg.text.split("\n");
+    const [day, taskNo] = util.extractModificationString(modificationPart);
+    const changedTask = util.extractTask(taskPart.join("\n"));
+    const date = new Date(util.swapMonthDate(day));
+  
+    console.log("modifivationPart", modificationPart,
+      "taskPart", taskPart, 
+      "day", day,
+      "taskNo", taskNo, 
+      "changedTask", changedTask,
+      "date", date);
+
+    if (String(changedTask.date) === "Invalid Date")
+      delete changedTask.date;
+    
+    if(!(day && date && taskNo && changedTask))
+      return bot.sendMessage(id, "Wrong format");
     result = await db.updateTask(id, changedTask, taskNo - 1, date) ? "done" : "task not found";
   } catch (ex) {
     console.log(ex);
