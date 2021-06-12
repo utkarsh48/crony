@@ -1,3 +1,5 @@
+const validate = require("./validation");
+
 module.exports = class Task{
   subject; 
   date;
@@ -10,7 +12,6 @@ module.exports = class Task{
 
   static fromFirebase(obj){
     let {subject, date, description} = obj;
-    console.log("d>", date);
     date = new Date(String(date));
     return new Task(subject, date, description);
   }
@@ -21,20 +22,5 @@ module.exports = class Task{
 
   getMonth(){
     return this.date.getMonth()+1;
-  }
-
-  static duringInputDay(day) {
-    let splitDay = day.split(delim);
-    splitDay = splitDay.map(unit=>unit.trim());
-  
-    switch (splitDay.length) {
-      case 2:
-        splitDay.push("0");
-        break;
-      default:
-        throw new Error("invalid date");
-    }
-  
-    return splitDay.join("-");
   }
 }

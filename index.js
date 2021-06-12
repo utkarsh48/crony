@@ -33,21 +33,18 @@ bot.on(["/add", "/remind"], async msg => {
 
 bot.on("ask.task_add", async msg => {
   const { id } = msg.from;
-
-  const task = util.extractTask(msg.text);
-
-  if (validate.subject(task.subject) && validate.day(task.date))
-    return bot.sendMessage(id, `Wrong format`, { ask: "task_add" });
-
-  let result = new String();
+  let message = new String();
 
   try {
-    result = await db.addTask(id, task) ? "done" : "unable to add task";
+    const task = util.extractTaskFromString(msg.text);
+
+    message = await db.addTask(id, task) ? "done" : "unable to add reminder";
   } catch (ex) {
+    message = ex.message;
     console.log(ex);
   }
 
-  return bot.sendMessage(id, "add: " + result);
+  return bot.sendMessage(id, "add: " + message);
 });
 
 
@@ -62,18 +59,18 @@ bot.on(["/delete", "/remove"], async msg => {
 
 bot.on("ask.task_delete", async msg => {
   const { id } = msg.from;
-
-  const [day, taskNo] = util.extractModificationString(msg.text);
-  const date = new Date(util.swapMonthDate(day));
-
-  if(!(day && date && taskNo))
-    return bot.sendMessage(id, "Wrong format");
-
-  let result;
-
+  let result = new String();
+  
   try {
+    const [day, taskNo] = util.extractModificationString(msg.text);
+    const date = new Date(util.swapMonthDate(day));
+  
+    if(taskNo || !validate.day(date))
+      throw new Error("Wrong format");
+
     result = await db.deleteTask(id, taskNo - 1, date) ? "done" : "task not found";
   } catch (ex) {
+    result = ex.message;
     console.log(ex);
   }
 
@@ -98,21 +95,23 @@ bot.on(["/listOf", "/getOf"], async msg => {
 
 bot.on("ask.task_get_of", async msg => {
   const { id } = msg.from;
-  const date = new Date(msg.text);
-  if(!date) return bot.sendMessage(id, "Wrong format");
   let result = new String();
   try {
+    const date = new Date(msg.text);
+    if(!validate.day(date)) throw new Error("Wrong format");
+
     const tasks = await db.getTasksOfDate(id, date);
-    
+    if(!tasks)
+      throw new Error("No reminders found");
     
     for(const [taskNo, task] of Object.entries(tasks))
       result += util.populateTaskMessage(taskNo, task);
     
-  } catch (error) {
-    result = "No reminder found";
+  } catch (ex) {
+    console.error(ex);
+    result = ex.message;
   }
   return bot.sendMessage(id, result, { parseMode: 'Markdown'});
-
 })
 
 
@@ -125,31 +124,23 @@ bot.on(["/update"], async msg => {
 
 bot.on("ask.task_update", async msg => {
   const { id } = msg.from;
-  let result;
+  let result = new String();
   try {
-  
     const [modificationPart, ...taskPart] = msg.text.split("\n");
     const [day, taskNo] = util.extractModificationString(modificationPart);
-    const changedTask = util.extractTask(taskPart.join("\n"));
+    const changedTask = util.extractTaskFromString(taskPart.join("\n"));
     const date = new Date(util.swapMonthDate(day));
-  
-    console.log("modifivationPart", modificationPart,
-      "taskPart", taskPart, 
-      "day", day,
-      "taskNo", taskNo, 
-      "changedTask", changedTask,
-      "date", date);
 
     if (String(changedTask.date) === "Invalid Date")
       delete changedTask.date;
-    
     if(!(day && date && taskNo && changedTask))
-      return bot.sendMessage(id, "Wrong format");
+      throw new Error("Wrong format");
+    
     result = await db.updateTask(id, changedTask, taskNo - 1, date) ? "done" : "task not found";
   } catch (ex) {
+    result = ex.message;
     console.log(ex);
   }
-
   return bot.sendMessage(id, "update: " + result);
 });
 

@@ -1,15 +1,18 @@
 const Task = require("./Task");
+const validate = require("./validation");
 
 
 module.exports ={
-  extractTask: function (str) {
-   let [date, subject, ...descriptionParts] = str.split('\n');
-  
-   let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
-   let day = new Date(this.swapMonthDate(date));
-  
-   [subject, description] = [subject, description].map(text => text.trim());
-   return new Task(subject, day, description);
+  extractTaskFromString(str){
+    let [date, subject, ...descriptionParts] = str.split('\n');
+    
+    let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
+    let day = new Date(this.swapMonthDate(date));
+    if(!validate.day(day))
+      throw new Error("Wrong format");
+    
+    [subject, description] = [subject, description].map(text => text.trim());
+    return new Task(subject, day, description);
   },
 
   extractModificationString: function (str) {
