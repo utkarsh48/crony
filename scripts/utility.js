@@ -3,13 +3,15 @@ const validate = require("./validation");
 
 
 module.exports = {
-  extractTaskFromString(str, options){
+  extractTaskFromString(str, options={suppress: false}){
     let [date, subject, ...descriptionParts] = str.split('\n');
     
     let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
     let day = new Date(this.swapMonthDate(date));
-    if(!validate.day(day) && options && !options.suppress)
+
+    if(!validate.dateString(date) || !validate.day(day) || options.suppress)
       throw new Error("Wrong format");
+    
     
     [subject, description] = [subject, description].map(text => text.trim());
     return new Task(subject, day, description);
@@ -65,5 +67,9 @@ module.exports = {
     let temp = date.split("-");
     [temp[0],temp[1]] = [temp[1],temp[0]];
     return temp.join("-");
+  },
+
+  compareYear: function (obj1, obj2) {
+    return obj1.getFullYear() === obj2.getFullYear();
   }
 }

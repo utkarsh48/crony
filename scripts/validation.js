@@ -1,11 +1,14 @@
 module.exports = {
-  day : function(day) {
+  day: function(day) {
     let date = new Date(day)
     if(String(date) === "Invalid Date")
       return false;
     return true;
   },
-  subject : function(subject) {
+  subject: function(subject) {
     return subject.length > 0;    
+  },
+  dateString: function (dateString) {
+    return dateString.split("-").length >= 2;
   }
 }

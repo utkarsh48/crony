@@ -65,7 +65,7 @@ bot.on("ask.task_delete", async msg => {
     const [day, taskNo] = util.extractModificationString(msg.text);
     const date = new Date(util.swapMonthDate(day));
   
-    if(!taskNo || !validate.day(date))
+    if(!taskNo || !validate.day(date) || !validate.dateString(day))
       throw new Error("Wrong format");
 
     result = await db.deleteTask(id, taskNo - 1, date) ? "done" : "task not found";
@@ -97,13 +97,17 @@ bot.on("ask.task_get_of", async msg => {
   const { id } = msg.from;
   let result = new String();
   try {
-    const date = new Date(util.swapMonthDate(msg.text));
-    if(!validate.day(date)) throw new Error("Wrong format");
+    const day = util.swapMonthDate(msg.text);
+    const date = new Date(day);
+    if(!validate.day(date) || !validate.dateString(day)) 
+      throw new Error("Wrong format");
 
     const tasks = await db.getTasksOfDate(id, date);
-    if(!tasks)
-      throw new Error("No reminders found");
+    const exists = tasks? !(tasks.findIndex(task => util.compareYear(new Date(task.date), date)) === -1) : false;
     
+    if(!tasks || !exists)
+      throw new Error("No reminders found");
+
     for(const [taskNo, task] of Object.entries(tasks))
       result += util.populateTaskMessage(taskNo, task);
     

@@ -4,6 +4,7 @@ add examples
 
 ### Test
 [x] list(s)
-[] add
+[x] add
 [] delete
 [] update
+[] zeros and -ves
