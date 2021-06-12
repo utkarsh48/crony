@@ -65,7 +65,7 @@ bot.on("ask.task_delete", async msg => {
     const [day, taskNo] = util.extractModificationString(msg.text);
     const date = new Date(util.swapMonthDate(day));
   
-    if(taskNo || !validate.day(date))
+    if(!taskNo || !validate.day(date))
       throw new Error("Wrong format");
 
     result = await db.deleteTask(id, taskNo - 1, date) ? "done" : "task not found";
@@ -80,7 +80,7 @@ bot.on("ask.task_delete", async msg => {
 
 
 bot.on(["/list", "/get"], async msg => {
-  getList(msg, "Your reminders are as follows");
+  await getList(msg, "Your reminders are as follows");
 });
 
 
@@ -97,7 +97,7 @@ bot.on("ask.task_get_of", async msg => {
   const { id } = msg.from;
   let result = new String();
   try {
-    const date = new Date(msg.text);
+    const date = new Date(util.swapMonthDate(msg.text));
     if(!validate.day(date)) throw new Error("Wrong format");
 
     const tasks = await db.getTasksOfDate(id, date);
@@ -117,9 +117,7 @@ bot.on("ask.task_get_of", async msg => {
 
 
 bot.on(["/update"], async msg => {
-  const { id } = msg.from;
-
-  return bot.sendMessage(id, "To update a reminder send\nDD-MM-YYYY:ReminderNumber\nDD-MM-YYYY\nSubject\nDescription", { ask: "task_update" });
+  await getList(msg, "To update a reminder send\nDD-MM-YYYY:ReminderNumber\nDD-MM-YYYY\nSubject\nDescription", { ask: "task_update" });
 });
 
 bot.on("ask.task_update", async msg => {
@@ -128,7 +126,7 @@ bot.on("ask.task_update", async msg => {
   try {
     const [modificationPart, ...taskPart] = msg.text.split("\n");
     const [day, taskNo] = util.extractModificationString(modificationPart);
-    const changedTask = util.extractTaskFromString(taskPart.join("\n"));
+    const changedTask = util.extractTaskFromString(taskPart.join("\n"), {suppress: true});
     const date = new Date(util.swapMonthDate(day));
 
     if (String(changedTask.date) === "Invalid Date")
@@ -163,6 +161,7 @@ getList = async (msg, firstLine, options) => {
     message = util.populateListMessage(res, firstLine);
   } catch (ex) {
     console.log(ex);
+    message = ex.message;
   }
   
   return bot.sendMessage(id, message, { parseMode: 'Markdown', ...options});

@@ -2,13 +2,13 @@ const Task = require("./Task");
 const validate = require("./validation");
 
 
-module.exports ={
-  extractTaskFromString(str){
+module.exports = {
+  extractTaskFromString(str, options){
     let [date, subject, ...descriptionParts] = str.split('\n');
     
     let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
     let day = new Date(this.swapMonthDate(date));
-    if(!validate.day(day))
+    if(!validate.day(day) && options && !options.suppress)
       throw new Error("Wrong format");
     
     [subject, description] = [subject, description].map(text => text.trim());
@@ -39,7 +39,7 @@ module.exports ={
   populateTaskMessage: function (taskNo, task) {
     let taskObject = Task.fromFirebase(task);
 
-    return `Reminder ${parseInt(taskNo) + 1} of\n${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description}\n-----\n\n`;
+    return `Reminder ${parseInt(taskNo) + 1} of\n${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description ? taskObject.description : ""}\n-----\n\n`;
   },
 
   getMonthName: function (num) {
@@ -48,8 +48,8 @@ module.exports ={
 
   simplifyDate: function (date) {
     let str = `${this.padZero(date.getMonth() + 1)}-${this.padZero(date.getDate())}`;
-    let whatYear = date.getYear() % 100;
-    str = whatYear ? `${str}-${this.padZero(whatYear)}` : str;
+    let whatYear = date.getFullYear();
+    str = whatYear ? `${str}-${whatYear}` : str;
     return this.swapMonthDate(str);
   },
 

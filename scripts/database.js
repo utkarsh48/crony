@@ -54,7 +54,6 @@ module.exports = {
       return null;
     }
   },
-  //check again addTask if else properdestructuring?
   addTask: async function (userId, task) {
     try {
       const oldTasks = await this.getTasks(userId);
@@ -84,11 +83,10 @@ module.exports = {
   },
   deleteTask: async function (userId, taskNo, date) {
     try {
-      const tasksOfDay = await this.getTasksOfDate(String(userId), date);
+      const tasksOfDay = await this.getTasksOfDate(userId, date);
       const taskToDelete = Task.fromFirebase(tasksOfDay[taskNo]);
 
-      if (!taskToDelete) return false;
-
+      if (!taskToDelete || taskToDelete.date.getFullYear() !== date.getFullYear()) return null;
 
       const taskDay = date.getDate();
       let obj = { [taskDay]: firebase.firestore.FieldValue.arrayRemove(tasksOfDay[taskNo]) };
@@ -97,7 +95,7 @@ module.exports = {
     }
     catch (ex) {
       console.error(ex);
-      return false;
+      return null;
     }
   },
   updateTask: async function (userId, rawChangedTask, taskNo, date) {
