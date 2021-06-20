@@ -73,4 +73,4 @@ module.exports = {
   compareYear: function (obj1, obj2) {
     return obj1.getFullYear() === obj2.getFullYear();
   }
-}
+};

@@ -11,4 +11,4 @@ module.exports = {
   dateString: function (dateString) {
     return dateString.split("-").length >= 2;
   }
-}
+};

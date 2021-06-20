@@ -1,5 +1,3 @@
-const validate = require("./validation");
-
 module.exports = class Task{
   subject; 
   date;
@@ -30,4 +28,4 @@ module.exports = class Task{
       temp[key] = value;
     return temp;
   }
-}
+};

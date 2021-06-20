@@ -155,4 +155,4 @@ module.exports = {
 
     return snapshot.exists ? snapshot.data()[String(date.getDate())] : null;
   }
-}
+};
