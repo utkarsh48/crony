@@ -9,8 +9,9 @@ module.exports = {
     let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
     let day = new Date(this.swapMonthDate(date));
 
-    if(!validate.dateString(date) || !validate.day(day) || options.suppress)
-      throw new Error("Wrong format");
+    if(!options.suppress)
+      if(!validate.dateString(date) || !validate.day(day))
+        throw new Error("Wrong format");
     
     
     [subject, description] = [subject, description].map(text => text.trim());

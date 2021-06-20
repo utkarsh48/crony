@@ -100,6 +100,8 @@ module.exports = {
   },
   updateTask: async function (userId, rawChangedTask, taskNo, date) {
     try {
+
+      
       return db.runTransaction(async ()=>{
         const res1 = await this.deleteTask(userId, taskNo, date);
         if(!res1) return false;
@@ -113,6 +115,9 @@ module.exports = {
       console.error(ex);
       return false;
     }
+  },
+  updateSameTask: async function () {
+    
   },
   getTasksOfDate: async (userId, date) => {
     let snapshot = await db.collection("users")
