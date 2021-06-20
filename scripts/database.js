@@ -100,24 +100,52 @@ module.exports = {
   },
   updateTask: async function (userId, rawChangedTask, taskNo, date) {
     try {
+      const oldTasks = await this.getTasks(userId);
+      const oldMonth = String(date.getMonth() + 1);
+      const oldTasksOfThisMonth = oldTasks ? oldTasks.filter(task => oldMonth in task)[0][oldMonth] : null ;
+      let taskDay = date.getDate();
 
+      const taskToDelete = oldTasksOfThisMonth && oldTasksOfThisMonth[taskDay][taskNo] ? Task.fromFirebase(oldTasksOfThisMonth[taskDay][taskNo]) : null;
+
+      if(!taskToDelete)
+        throw new Error("Not found");
+
+      const batch = db.batch();
+      // remove
+
+      if (!taskToDelete || taskToDelete.date.getFullYear() !== date.getFullYear()) return null;
+
+      let toUpdateTask = { [taskDay]: firebase.firestore.FieldValue.arrayRemove(taskToDelete.getTaskObject()) };
+      const delDocRef = db.collection("users").doc(String(userId)).collection("tasks").doc(String(taskToDelete.getMonth()));
       
-      return db.runTransaction(async ()=>{
-        const res1 = await this.deleteTask(userId, taskNo, date);
-        if(!res1) return false;
-        
-        let changedTask = Task.fromFirebase({...res1, ...rawChangedTask});
-        const res2 = await this.addTask(userId, changedTask);
-        return res1 && res2;
-      });      
+      batch.update(delDocRef, toUpdateTask);
+
+      let changedTask = Task.fromFirebase({...taskToDelete, ...rawChangedTask});
+      // add
+
+      taskDay = changedTask.getDate();
+      
+      const taskObject = changedTask.getTaskObject();
+      taskObject.date = String(changedTask.date);
+
+
+      const updateDocRef = db.collection("users").doc(String(userId)).collection("tasks").doc(String(changedTask.getMonth()));
+      if (oldTasksOfThisMonth){
+        const toUpdateTask = { [taskDay]: firebase.firestore.FieldValue.arrayUnion(taskObject) };
+        batch.update(updateDocRef, toUpdateTask);
+      }
+      else{
+        const toUpdateTask = { [taskDay]: [taskObject] };
+        batch.set(updateDocRef, toUpdateTask, { merge: true });
+      }
+
+      await batch.commit();
+      return true;
     }
     catch (ex) {
       console.error(ex);
       return false;
     }
-  },
-  updateSameTask: async function () {
-    
   },
   getTasksOfDate: async (userId, date) => {
     let snapshot = await db.collection("users")

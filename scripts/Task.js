@@ -23,4 +23,11 @@ module.exports = class Task{
   getMonth(){
     return this.date.getMonth()+1;
   }
+
+  getTaskObject(){
+    const temp = {};
+    for(let [key, value] of Object.entries(this))
+      temp[key] = value;
+    return temp;
+  }
 }
