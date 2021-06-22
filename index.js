@@ -1,5 +1,6 @@
 const TeleBot = require('telebot');
 const app = require("express")();
+const cron = require("node-cron");
 
 const { token } = require("./config.json");
 const bot = new TeleBot({
@@ -148,9 +149,17 @@ bot.on("ask.task_update", async msg => {
 
 
 
+function runEveryday(){
+  // get all users 
+  // get tasks of current date for each user
+  // send reminder to each user
+}
 
-bot.start();
-app.listen(process.env.PORT || 3000, () => console.log("listening..."));
+app.listen(process.env.PORT || 3000, () => {
+  console.log("listening...");
+  bot.start();
+  cron.schedule("0 0 * * *", runEveryday, {timezone: "Asia/Kolkata"});
+});
 
 
 getList = async (msg, firstLine, options) => {
