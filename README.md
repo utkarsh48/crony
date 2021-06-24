@@ -9,5 +9,3 @@ add examples
 - [x] delete
 - [x] update
 - [] zeros, decimal and -ves
-
-make yearly recurring

@@ -37,7 +37,7 @@ bot.on(["/add", "/remind"], async msg => {
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
 
 
-  return bot.sendMessage(id, `Enter your task in the format: \ndate${delim}month${delim}year\nReminder Name\nDescription\n\nskip ${delim}year if its a yearly recurring`, { ask: "task_add" });
+  return bot.sendMessage(id, `Enter your task in the format: \ndate${delim}month${delim}year\nReminder Name\nDescription\n\nskip ${delim}year if its a yearly recurring or use 0 for year`, { ask: "task_add" });
 });
 
 bot.on("ask.task_add", async msg => {
@@ -175,11 +175,13 @@ async function runEveryday(){
   const users = await db.getAllUsers();
   users.forEach(async user=>{
     const tasks = await db.getTasksOfDate(user.id, today);
-    const tasksToRemind = tasks ? tasks.filter(task=>util.compareYear(new Date(task.date), today)) : null;
+    const tasksToRemind = tasks ? tasks.filter(task=>{
+      const taskDate = new Date(task.date);
+      return util.compareYear(taskDate, today) || util.compareYear(taskDate, new Date("1-1-2000"))
+    }) : null;
 
     if(!tasksToRemind)
      return;
-    
     tasksToRemind.forEach(task=>{
       const message = util.populateTaskMessage(task);
       bot.sendMessage(user.id, message, {parseMode: 'Markdown'});
