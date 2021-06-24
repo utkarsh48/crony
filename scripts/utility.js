@@ -32,15 +32,18 @@ module.exports = {
         message += `\n${this.getMonthName(monthNo)}\n----------\n`;
         for (const [date, dateObj] of Object.entries(monthObj)) {
           for (const [taskNo, task] of Object.entries(dateObj)) {
-            message += this.populateTaskMessage(taskNo, task);
+            message += this.populateTaskMessage(task, taskNo);
           }
         }
       }
     return message;
   },
 
-  populateTaskMessage: function (taskNo, task) {
+  populateTaskMessage: function (task, taskNo = null) {
     let taskObject = Task.fromFirebase(task);
+
+    if(!taskNo)
+      return `${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description ? taskObject.description : ""}\n-----\n\n`;
 
     return `Reminder ${parseInt(taskNo) + 1} of\n${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description ? taskObject.description : ""}\n-----\n\n`;
   },
