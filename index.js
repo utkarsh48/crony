@@ -14,11 +14,19 @@ const db = require("./scripts/database");
 const delim = "-";
 
 
+
 bot.on(['/start', '/begin'], async msg => {
   const user = { ...msg.from }
   const res = await db.addUser(user);
   if (res)
     msg.reply.text(`Welcome! ${user.first_name}`);
+});
+
+
+
+bot.on(['/help'], async msg => {
+  const { id } = msg.from;
+  msg.reply.text(`Following commands can be used${getHelp()}`);
 });
 
 
@@ -29,7 +37,7 @@ bot.on(["/add", "/remind"], async msg => {
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
 
 
-  return bot.sendMessage(id, `Enter your task in the format: \nDD${delim}MM${delim}YYYY\nReminder Name\nDescription\n\nskip ${delim}YYYY if its a yearly recurring`, { ask: "task_add" });
+  return bot.sendMessage(id, `Enter your task in the format: \ndate${delim}month${delim}year\nReminder Name\nDescription\n\nskip ${delim}year if its a yearly recurring`, { ask: "task_add" });
 });
 
 bot.on("ask.task_add", async msg => {
@@ -55,7 +63,7 @@ bot.on(["/delete", "/remove"], async msg => {
   const userExist = await db.isUser(id);
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
 
-  return getList(msg, "To delete a reminder send\nDD-MM-YYYY:ReminderNumber", { ask: "task_delete" });
+  return getList(msg, "To delete a reminder send\ndate-month-year:ReminderNumber", { ask: "task_delete" });
 });
 
 bot.on("ask.task_delete", async msg => {
@@ -91,7 +99,7 @@ bot.on(["/listOf", "/getOf"], async msg => {
   const userExist = await db.isUser(id);
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
 
-  bot.sendMessage(id, "Send a date in the format\nDD-MM-YYYY", {ask: "task_get_of"});
+  bot.sendMessage(id, "Send a date in the format\ndate-month-year", {ask: "task_get_of"});
 });
 
 bot.on("ask.task_get_of", async msg => {
@@ -122,7 +130,7 @@ bot.on("ask.task_get_of", async msg => {
 
 
 bot.on(["/update"], async msg => {
-  await getList(msg, "To update a reminder send\nDD-MM-YYYY:ReminderNumber\nDD-MM-YYYY\nSubject\nDescription", { ask: "task_update" });
+  await getList(msg, "To update a reminder send\ndate-month-year:ReminderNumber\ndate-month-year\nSubject\nDescription", { ask: "task_update" });
 });
 
 bot.on("ask.task_update", async msg => {
@@ -147,15 +155,20 @@ bot.on("ask.task_update", async msg => {
   return bot.sendMessage(id, "update: " + result);
 });
 
+
+
+
 app.get("/", (req, res)=>{
   res.send("Up!");
 });
+
 
 app.listen(process.env.PORT || 3000, () => {
   console.log("listening...");
   bot.start();
   cron.schedule("0 0 * * *", runEveryday, {timezone: "Asia/Kolkata"});
 });
+
 
 async function runEveryday(){
   const today =  new Date();
@@ -174,7 +187,6 @@ async function runEveryday(){
   });
 }
 
-
 getList = async (msg, firstLine, options) => {
   const { id } = msg.from;
   const userExist = await db.isUser(id);
@@ -191,4 +203,52 @@ getList = async (msg, firstLine, options) => {
   }
   
   return bot.sendMessage(id, message, { parseMode: 'Markdown', ...options});
+}
+
+function getHelp(){
+  const commands = [
+    {
+      command: "start",
+      alias: "begin",
+      description: "starts the bot"
+    },
+    {
+      command: "help",
+      description: "show all commands"
+    },
+    {
+      command: "list",
+      alias: "get",
+      description: "get all the reminders"
+    },
+    {
+      command: "listOf",
+      alias: "getOf",
+      description: "get all the reminders of a specific date"
+    },
+    {
+      command: "add",
+      alias: "remind",
+      description: "add new reminder"
+    },
+    {
+      command: "update",
+      description: "update a reminder"
+    },
+    {
+      command: "remove",
+      alias: "delete",
+      description: "delete a reminder"
+    },
+    {
+      command: "add",
+      alias: "remind",
+      description: "add new reminder"
+    },
+  ];
+  let commandsText = new String();
+  commands.forEach(cmd=>{
+    commandsText += `\n/${cmd.command} or /${cmd.alias}\n${cmd.description}\n`;
+  });
+  return commandsText;
 }
