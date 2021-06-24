@@ -29,12 +29,15 @@ module.exports = {
     //add other paths logic
     for (const doc of arr)
       for (const [monthNo, monthObj] of Object.entries(doc)) {
-        message += `\n${this.getMonthName(monthNo)}\n----------\n`;
+        let month = `\n${this.getMonthName(monthNo)}\n----------\n`;
+        let tasks = new String();
         for (const [date, dateObj] of Object.entries(monthObj)) {
           for (const [taskNo, task] of Object.entries(dateObj)) {
-            message += this.populateTaskMessage(task, taskNo);
+            tasks += this.populateTaskMessage(task, taskNo);
           }
         }
+        if(tasks.trim() !== "")
+          message += month + tasks;
       }
     return message;
   },
