@@ -110,7 +110,7 @@ bot.on("ask.task_get_of", async msg => {
       throw new Error("No reminders found");
 
     for(const [taskNo, task] of Object.entries(tasks))
-      result += util.populateTaskMessage(taskNo, task);
+      result += util.populateTaskMessage(task, taskNo);
     
   } catch (ex) {
     console.error(ex);
@@ -148,18 +148,28 @@ bot.on("ask.task_update", async msg => {
 });
 
 
-
-function runEveryday(){
-  // get all users 
-  // get tasks of current date for each user
-  // send reminder to each user
-}
-
 app.listen(process.env.PORT || 3000, () => {
   console.log("listening...");
   bot.start();
   cron.schedule("0 0 * * *", runEveryday, {timezone: "Asia/Kolkata"});
 });
+
+async function runEveryday(){
+  const today =  new Date();
+  const users = await db.getAllUsers();
+  users.forEach(async user=>{
+    const tasks = await db.getTasksOfDate(user.id, today);
+    const tasksToRemind = tasks ? tasks.filter(task=>util.compareYear(new Date(task.date), today)) : null;
+
+    if(!tasksToRemind)
+     return;
+    
+    tasksToRemind.forEach(task=>{
+      const message = util.populateTaskMessage(task);
+      bot.sendMessage(user.id, message, {parseMode: 'Markdown'});
+    });
+  });
+}
 
 
 getList = async (msg, firstLine, options) => {

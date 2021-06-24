@@ -8,6 +8,18 @@ const Task = require("./Task");
 
 
 module.exports = {
+  getAllUsers: async function () {
+    let snapshot = await db.collection("users").get();
+    if(!snapshot.empty){
+      let users = new Array();
+
+      snapshot.forEach(doc => {
+        users.push(doc.data());
+      });
+
+      return users;
+    }
+  },
   addUser: async function (user) {
     try {
       await db.collection("users").doc(String(user.id)).set(user, { merge: true });
