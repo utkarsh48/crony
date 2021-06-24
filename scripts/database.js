@@ -1,4 +1,5 @@
-const { firebaseConfig } = require("../config.json");//process.env.BOT_TOKEN
+const { firebaseConfig: stringConfig } = process.env;
+const firebaseConfig = JSON.parse(stringConfig);
 
 const firebase = require("firebase/app");
 require("firebase/firestore");

@@ -2,7 +2,7 @@ const TeleBot = require('telebot');
 const app = require("express")();
 const cron = require("node-cron");
 
-const { token } = require("./config.json");
+const {BOT_TOKEN: token} = process.env;
 const bot = new TeleBot({
   token,
   usePlugins: ['askUser']
@@ -147,6 +147,9 @@ bot.on("ask.task_update", async msg => {
   return bot.sendMessage(id, "update: " + result);
 });
 
+app.get("/", (req, res)=>{
+  res.send("Up!");
+})
 
 app.listen(process.env.PORT || 3000, () => {
   console.log("listening...");
