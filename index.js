@@ -66,7 +66,7 @@ bot.on("ask.task_delete", async msg => {
     const [day, taskNo] = util.extractModificationString(msg.text);
     const date = new Date(util.swapMonthDate(day));
   
-    if(!taskNo || typeof taskNo !== "number" || !validate.day(date) || !validate.dateString(day))
+    if(!taskNo || isNaN(parseInt(taskNo)) || !validate.day(date) || !validate.dateString(day))
       throw new Error("Wrong format");
 
     result = await db.deleteTask(id, taskNo - 1, date) ? "done" : "task not found";
