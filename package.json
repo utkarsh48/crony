@@ -1,5 +1,5 @@
 {
-  "name": "crony",
+  "name": "remindit48_bot",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -16,13 +16,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/utkarsh48/crony.git"
+    "url": "git+https://github.com/utkarsh48/remindit48_bot.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/utkarsh48/crony/issues"
+    "url": "https://github.com/utkarsh48/remindit48_bot/issues"
   },
-  "homepage": "https://github.com/utkarsh48/crony#readme"
+  "homepage": "https://github.com/utkarsh48/remindit48_bot#readme"
 }
