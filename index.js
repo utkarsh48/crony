@@ -110,7 +110,10 @@ bot.on("ask.task_get_of", async msg => {
     const date = new Date(day);
     if(!validate.day(date) || !validate.dateString(day)) 
       throw new Error("Wrong format");
-
+    
+    if(day.split().length<3)
+      date.setFullYear(2000);
+    
     const tasks = await db.getTasksOfDate(id, date);
     const exists = tasks? !(tasks.findIndex(task => util.compareYear(new Date(task.date), date)) === -1) : false;
     
