@@ -11,6 +11,7 @@ const bot = new TeleBot({
 const validate = require("./scripts/validation");
 const util = require("./scripts/utility");
 const db = require("./scripts/database");
+const runEveryday = require("./scripts/runEveryday");
 const delim = "-";
 
 
@@ -111,8 +112,7 @@ bot.on("ask.task_get_of", async msg => {
     if(!validate.day(date) || !validate.dateString(day)) 
       throw new Error("Wrong format");
     
-    if(day.split().length<3)
-      date.setFullYear(2000);
+    util.setItYear2000(day, date);
     
     const tasks = await db.getTasksOfDate(id, date);
     const exists = tasks? !(tasks.findIndex(task => util.compareYear(new Date(task.date), date)) === -1) : false;
@@ -169,28 +169,8 @@ app.get("/", (req, res)=>{
 app.listen(process.env.PORT || 3000, () => {
   console.log("listening...");
   bot.start();
-  cron.schedule("0 0 * * *", runEveryday, {timezone: "Asia/Kolkata"});
+  cron.schedule("0 0 * * *", ()=>runEveryday(bot, db, util), {timezone: "Asia/Kolkata"});
 });
-
-
-async function runEveryday(){
-  const today =  new Date();
-  const users = await db.getAllUsers();
-  users.forEach(async user=>{
-    const tasks = await db.getTasksOfDate(user.id, today);
-    const tasksToRemind = tasks ? tasks.filter(task=>{
-      const taskDate = new Date(task.date);
-      return util.compareYear(taskDate, today) || util.compareYear(taskDate, new Date("1-1-2000"))
-    }) : null;
-
-    if(!tasksToRemind)
-     return;
-    tasksToRemind.forEach(task=>{
-      const message = util.populateTaskMessage(task);
-      bot.sendMessage(user.id, message, {parseMode: 'Markdown'});
-    });
-  });
-}
 
 getList = async (msg, firstLine, options) => {
   const { id } = msg.from;

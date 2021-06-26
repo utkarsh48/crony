@@ -4,20 +4,19 @@ const validate = require("./validation");
 
 module.exports = {
   extractTaskFromString(str, options={suppress: false}){
-    let [date, subject, ...descriptionParts] = str.split('\n');
+    let [day, subject, ...descriptionParts] = str.split('\n');
     
     let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
-    let day = new Date(this.swapMonthDate(date));
+    let date = new Date(this.swapMonthDate(day));
 
     if(!options.suppress)
-      if(!validate.dateString(date) || !validate.day(day))
+      if(!validate.dateString(day) || !validate.day(date))
         throw new Error("Wrong format");
     
-    if(date.split().length<3)
-      day.setFullYear(2000);
+    this.setItYear2000(day, date)
     
     [subject, description] = [subject, description].map(text => text.trim());
-    return new Task(subject, day, description);
+    return new Task(subject, date, description);
   },
 
   extractModificationString: function (str) {
@@ -80,5 +79,10 @@ module.exports = {
 
   compareYear: function (obj1, obj2) {
     return obj1.getFullYear() === obj2.getFullYear();
+  },
+
+  setItYear2000: function(stringDate, dateObj) {
+    if (stringDate.split().length < 3)
+      dateObj.setFullYear(2000);
   }
 };
