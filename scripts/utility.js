@@ -13,8 +13,8 @@ module.exports = {
       if(!validate.dateString(day) || !validate.day(date))
         throw new Error("Wrong format");
     
-    this.setItYear2000(day, date)
-    
+    this.setItYear2000(day, date);
+
     [subject, description] = [subject, description].map(text => text.trim());
     return new Task(subject, date, description);
   },

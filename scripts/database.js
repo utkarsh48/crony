@@ -130,16 +130,15 @@ module.exports = {
 
       let toUpdateTask = { [taskDay]: firebase.firestore.FieldValue.arrayRemove(taskToDelete.getTaskObject()) };
       const delDocRef = db.collection("users").doc(String(userId)).collection("tasks").doc(String(taskToDelete.getMonth()));
-      
+
       batch.update(delDocRef, toUpdateTask);
 
       let changedTask = Task.fromFirebase({...taskToDelete, ...rawChangedTask});
       // add
 
       taskDay = changedTask.getDate();
-      
+
       const taskObject = changedTask.getTaskObject();
-      taskObject.date = String(changedTask.date);
 
 
       const updateDocRef = db.collection("users").doc(String(userId)).collection("tasks").doc(String(changedTask.getMonth()));

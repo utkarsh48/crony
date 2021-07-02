@@ -74,6 +74,7 @@ bot.on("ask.task_delete", async msg => {
   try {
     const [day, taskNo] = util.extractModificationString(msg.text);
     const date = new Date(util.swapMonthDate(day));
+    util.setItYear2000(day, date);
   
     if(!taskNo || isNaN(parseInt(taskNo)) || !validate.day(date) || !validate.dateString(day))
       throw new Error("Wrong format");
@@ -142,14 +143,16 @@ bot.on("ask.task_update", async msg => {
   try {
     const [modificationPart, ...taskPart] = msg.text.split("\n");
     const [day, taskNo] = util.extractModificationString(modificationPart);
-    const changedTask = util.extractTaskFromString(taskPart.join("\n"), {suppress: true});
+    const changedTask = util.extractTaskFromString(day+"\n"+taskPart.join("\n"), {suppress: true});
     const date = new Date(util.swapMonthDate(day));
+
+    util.setItYear2000(day, date);
 
     if (String(changedTask.date) === "Invalid Date")
       delete changedTask.date;
     if(!(day && date && taskNo && changedTask))
       throw new Error("Wrong format");
-    
+
     result = await db.updateTask(id, changedTask, taskNo - 1, date) ? "done" : "task not found";
   } catch (ex) {
     result = ex.message;
