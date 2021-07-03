@@ -1,5 +1,5 @@
 module.exports = async function runEveryday(bot, db, util) {
-  const today = new Date();
+  const today = new Date(new Date().toLocaleString("en-US", "Asia/Kolkata"));
   const users = await db.getAllUsers();
   users.forEach(async (user) => {
     const tasks = await db.getTasksOfDate(user.id, today);
