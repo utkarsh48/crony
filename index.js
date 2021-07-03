@@ -17,6 +17,9 @@ const delim = "-";
 
 
 bot.on(['/start', '/begin'], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const user = { ...msg.from }
   const res = await db.addUser(user);
   if (res)
@@ -26,6 +29,9 @@ bot.on(['/start', '/begin'], async msg => {
 
 
 bot.on(['/help'], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   msg.reply.text(`Following commands can be used${getHelp()}`);
 });
@@ -33,6 +39,9 @@ bot.on(['/help'], async msg => {
 
 
 bot.on(["/add", "/remind"], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   const userExist = await db.isUser(id);
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
@@ -42,6 +51,9 @@ bot.on(["/add", "/remind"], async msg => {
 });
 
 bot.on("ask.task_add", async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   let message = new String();
 
@@ -60,6 +72,9 @@ bot.on("ask.task_add", async msg => {
 
 
 bot.on(["/delete", "/remove"], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   const userExist = await db.isUser(id);
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
@@ -68,6 +83,9 @@ bot.on(["/delete", "/remove"], async msg => {
 });
 
 bot.on("ask.task_delete", async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   let result = new String();
   
@@ -91,12 +109,18 @@ bot.on("ask.task_delete", async msg => {
 
 
 bot.on(["/list", "/get"], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   await getList(msg, "Your reminders are as follows");
 });
 
 
 
 bot.on(["/listOf", "/getOf"], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   const userExist = await db.isUser(id);
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
@@ -105,6 +129,9 @@ bot.on(["/listOf", "/getOf"], async msg => {
 });
 
 bot.on("ask.task_get_of", async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   let result = new String();
   try {
@@ -134,10 +161,16 @@ bot.on("ask.task_get_of", async msg => {
 
 
 bot.on(["/update"], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   await getList(msg, `To update a reminder send\ndate${delim}month${delim}year:reminderNumber\ndate${delim}month${delim}year\nSubject\nDescription\n\nskip 2nd date if there is no change in date\nskip ${delim}year if its a yearly recurring or use 0 for year`, { ask: "task_update" });
 });
 
 bot.on("ask.task_update", async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
   const { id } = msg.from;
   let result = new String();
   try {
@@ -159,6 +192,17 @@ bot.on("ask.task_update", async msg => {
     console.log(ex);
   }
   return bot.sendMessage(id, "update: " + result);
+});
+
+bot.on(["audio", "voice", "document", "photo", "sticker", "video", "videoNote", "animation", "contact", "location", "venue", "game", "invoice"], async msg => {
+	if(!util.isPrivate(msg))
+		return msg.reply.text("Use this bot from private chat only.")
+	
+	const { id } = msg.from;
+  const userExist = await db.isUser(id);
+  if (!userExist) return bot.sendMessage(id, "please /start the bot");
+
+  bot.sendMessage(id, "please use /help for list of commands");
 });
 
 

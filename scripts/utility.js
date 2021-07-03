@@ -3,6 +3,9 @@ const validate = require("./validation");
 
 
 module.exports = {
+	isPrivate: msg => {
+		return (msg && msg.chat.type === "private" && msg.chat.id === msg.from.id);
+	},
   extractTaskFromString(str, options={suppress: false}){
     let [day, subject, ...descriptionParts] = str.split('\n');
     
