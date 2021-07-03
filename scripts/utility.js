@@ -6,7 +6,10 @@ module.exports = {
   extractTaskFromString(str, options={suppress: false}){
     let [day, subject, ...descriptionParts] = str.split('\n');
     
-    let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
+		if(!validate.subject(subject))
+			throw new Error("Wrong format");
+    
+		let description = descriptionParts.length >= 1 ? descriptionParts.join("\n") : "";
     let date = new Date(this.swapMonthDate(day));
 
     if(!options.suppress)
@@ -30,7 +33,7 @@ module.exports = {
     //add other paths logic
     for (const doc of arr)
       for (const [monthNo, monthObj] of Object.entries(doc)) {
-        let month = `\n${this.getMonthName(monthNo)}\n----------\n`;
+        let month = `\n*${this.getMonthName(monthNo)}*\n*----------*\n`;
         let tasks = new String();
         for (const [date, dateObj] of Object.entries(monthObj)) {
           for (const [taskNo, task] of Object.entries(dateObj)) {
@@ -49,7 +52,7 @@ module.exports = {
     if(!taskNo)
       return `${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description ? taskObject.description : ""}\n-----\n\n`;
 
-    return `Reminder ${parseInt(taskNo) + 1} of\n${this.simplifyDate(taskObject.date)}\n*${taskObject.subject}*\n${taskObject.description ? taskObject.description : ""}\n-----\n\n`;
+    return `${this.simplifyDate(taskObject.date)}:${parseInt(taskNo) + 1}\n*${taskObject.subject}*${taskObject.description ? "\n"+taskObject.description : ""}\n-----\n\n`;
   },
 
   getMonthName: function (num) {
@@ -82,7 +85,7 @@ module.exports = {
   },
 
   setItYear2000: function(stringDate, dateObj) {
-    if (stringDate.split().length < 3)
+		if (stringDate.split("-").length < 3)
       dateObj.setFullYear(2000);
   }
 };

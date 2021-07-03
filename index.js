@@ -64,7 +64,7 @@ bot.on(["/delete", "/remove"], async msg => {
   const userExist = await db.isUser(id);
   if (!userExist) return bot.sendMessage(id, "please /start the bot");
 
-  return getList(msg, "To delete a reminder send\ndate-month-year:ReminderNumber", { ask: "task_delete" });
+  return getList(msg, `To delete a reminder send\ndate${delim}month${delim}year:reminderNumber\n\nskip ${delim}year if its a yearly recurring or use 0 for year`, { ask: "task_delete" });
 });
 
 bot.on("ask.task_delete", async msg => {
@@ -134,7 +134,7 @@ bot.on("ask.task_get_of", async msg => {
 
 
 bot.on(["/update"], async msg => {
-  await getList(msg, "To update a reminder send\ndate-month-year:ReminderNumber\ndate-month-year\nSubject\nDescription", { ask: "task_update" });
+  await getList(msg, `To update a reminder send\ndate${delim}month${delim}year:reminderNumber\ndate${delim}month${delim}year\nSubject\nDescription\n\nskip 2nd date if there is no change in date\nskip ${delim}year if its a yearly recurring or use 0 for year`, { ask: "task_update" });
 });
 
 bot.on("ask.task_update", async msg => {
