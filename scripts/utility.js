@@ -30,7 +30,7 @@ module.exports = {
   },
 
   populateListMessage: function (arr, firstLine = "Your reminders are as follows") {
-    let message = firstLine + "\n";
+    let message = "\n";
     if (arr.length < 1) return "You have no reminders"
 
     //add other paths logic
@@ -46,7 +46,9 @@ module.exports = {
         if(tasks.trim() !== "")
           message += month + tasks;
       }
-    return message;
+		if(message.trim()==="")
+			return "No reminders found";
+    return firstLine + message;
   },
 
   populateTaskMessage: function (task, taskNo = null) {
