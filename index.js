@@ -216,7 +216,7 @@ app.get("/", (req, res)=>{
 app.listen(process.env.PORT || 3000, () => {
   console.log("listening...");
   bot.start();
-  cron.schedule("0 0 * * *", ()=>runEveryday(bot, db, util), {timezone: "Asia/Kolkata"});
+  cron.schedule("0 0 * * *", () => runEveryday(bot, db, util), {timezone: "Asia/Kolkata"});
 });
 
 getList = async (msg, firstLine, options) => {
