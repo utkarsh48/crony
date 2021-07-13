@@ -1,6 +1,6 @@
 ## to dos
-write better user interaction messages
-add examples
+validation
+refactoring
 
 
 ### Test
@@ -8,4 +8,3 @@ add examples
 - [x] add
 - [x] delete
 - [x] update
-- [] zeros, decimal and -ves
