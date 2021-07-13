@@ -1,10 +1,12 @@
-const { firebaseConfig: stringConfig } = process.env;
+const { firebaseServiceJSON: stringConfig } = process.env;
 const firebaseConfig = JSON.parse(stringConfig);
 
-const firebase = require("firebase/app");
-require("firebase/firestore");
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const admin = require("firebase-admin");
+admin.initializeApp({
+	  credential: admin.credential.cert(firebaseConfig)
+	});
+const db = admin.firestore();
+
 const Task = require("./Task");
 
 
@@ -78,7 +80,7 @@ module.exports = {
       const oldTasksOfThisMonthExist = oldTasks? oldTasks.findIndex(oldTask => String(task.getMonth()) in oldTask) !== -1 : null;
 
       let obj = oldTasksOfThisMonthExist ?
-        { [taskDay]: firebase.firestore.FieldValue.arrayUnion(taskObject) } :
+        { [taskDay]: admin.firestore.FieldValue.arrayUnion(taskObject) } :
         { [taskDay]: [taskObject] };
 
 
@@ -102,7 +104,7 @@ module.exports = {
       if (!taskToDelete || taskToDelete.date.getFullYear() !== date.getFullYear()) return null;
 
       const taskDay = date.getDate();
-      let obj = { [taskDay]: firebase.firestore.FieldValue.arrayRemove(tasksOfDay[taskNo]) };
+      let obj = { [taskDay]: admin.firestore.FieldValue.arrayRemove(tasksOfDay[taskNo]) };
       await db.collection("users").doc(String(userId)).collection("tasks").doc(String(taskToDelete.getMonth())).update(obj);
       return taskToDelete;
     }
@@ -128,7 +130,7 @@ module.exports = {
 
       if (!taskToDelete || taskToDelete.date.getFullYear() !== date.getFullYear()) return null;
 
-      let toUpdateTask = { [taskDay]: firebase.firestore.FieldValue.arrayRemove(taskToDelete.getTaskObject()) };
+      let toUpdateTask = { [taskDay]: admin.firestore.FieldValue.arrayRemove(taskToDelete.getTaskObject()) };
       const delDocRef = db.collection("users").doc(String(userId)).collection("tasks").doc(String(taskToDelete.getMonth()));
 
       batch.update(delDocRef, toUpdateTask);
@@ -143,7 +145,7 @@ module.exports = {
 
       const updateDocRef = db.collection("users").doc(String(userId)).collection("tasks").doc(String(changedTask.getMonth()));
       if (oldTasksOfThisMonth){
-        const toUpdateTask = { [taskDay]: firebase.firestore.FieldValue.arrayUnion(taskObject) };
+        const toUpdateTask = { [taskDay]: admin.firestore.FieldValue.arrayUnion(taskObject) };
         batch.update(updateDocRef, toUpdateTask);
       }
       else{
