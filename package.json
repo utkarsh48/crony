@@ -10,11 +10,7 @@
     "node-cron": "^3.0.0",
     "telebot": "^1.4.1"
   },
-  "devDependencies": {
-    "jest": "^27.0.6"
-  },
   "scripts": {
-    "test": "jest",
     "start": "node index"
   },
   "repository": {

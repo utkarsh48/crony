@@ -20,9 +20,14 @@ bot.on(['/start', '/begin'], async msg => {
 	util.makeItPrivate(msg);
 
 	const user = { ...msg.from }
-	const res = await Database.addUser(user);
-	if (res)
-		msg.reply.text(`Welcome! ${user.first_name}`);
+	try{
+		const res = await Database.addUser(user);
+		if (res)
+			msg.reply.text(`Welcome! ${user.first_name}\nUse /help command to get a list of all commands and their functions.`);
+	}
+	catch(ex){
+		msg.reply.text("Some error occured.");
+	}
 });
 
 
@@ -263,7 +268,7 @@ function getHelp() {
 		},
 		{
 			command: "update",
-			description: "update a reminder"
+			description: "update an existing reminder"
 		},
 		{
 			command: "remove",
@@ -278,7 +283,11 @@ function getHelp() {
 	];
 	let commandsText = new String();
 	commands.forEach(cmd => {
-		commandsText += `\n/${cmd.command} or /${cmd.alias}\n${cmd.description}\n`;
+		let part = `\n/${cmd.command}`;
+		if(cmd && cmd.alias)
+			part += ` or /${cmd.alias}`
+		part+= `\n${cmd.description}\n`;
+		commandsText += part;
 	});
 	return commandsText;
 }
