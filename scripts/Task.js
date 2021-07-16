@@ -23,12 +23,8 @@ module.exports = class Task{
   }
 
   getTaskObject(){
-    const temp = {};
-    for(let [key, value] of Object.entries(this))
-      if (key === "date")
-        temp[key] = String(value);
-      else
-        temp[key] = value;
+    const temp = {...this};
+		temp.date = String(temp.date);
     return temp;
   }
 };
