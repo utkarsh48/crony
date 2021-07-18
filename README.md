@@ -33,5 +33,3 @@ Bot stores nothing on your device.
 `/update` update a reminder
 
 `/remove` or `/delete` delete a reminder
-
-`/add` or `/remind` add new reminder

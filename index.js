@@ -274,12 +274,7 @@ function getHelp() {
 			command: "remove",
 			alias: "delete",
 			description: "delete a reminder"
-		},
-		{
-			command: "add",
-			alias: "remind",
-			description: "add new reminder"
-		},
+		}
 	];
 	let commandsText = new String();
 	commands.forEach(cmd => {
